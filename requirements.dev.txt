@@ -1,4 +1,6 @@
--r requirements.dev.txt
+-r requirements.txt
 
 twine
 wheel
+
+pytest
