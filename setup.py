@@ -9,7 +9,7 @@ def requirements():
 
 setup(name='saga_framework',
       version='0.1',
-      description='Mini-framework that helps implementaing Saga pattern in microservices',
+      description='Mini-framework that helps implementing Saga pattern in microservices',
       url='https://github.com/absent1706/saga-framework',
       download_url='https://github.com/absent1706/saga-framework/archive/master.tar.gz',
       author='Alexander Litvinenko',

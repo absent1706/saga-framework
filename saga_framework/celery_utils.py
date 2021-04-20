@@ -1,9 +1,10 @@
-__all__ = ['auto_retry_then_reraise']
+__all__ = ['auto_retry_then_reraise', 'close_sqlalchemy_db_connection_after_celery_task_ends']
 
 import functools
 
 from celery import Task
 from celery.exceptions import MaxRetriesExceededError
+from celery.signals import task_postrun
 
 
 def auto_retry_then_reraise(max_retries: int = 3, **retry_kwargs):
@@ -33,3 +34,9 @@ def auto_retry_then_reraise(max_retries: int = 3, **retry_kwargs):
 
         return wrapper
     return inner
+
+
+def close_sqlalchemy_db_connection_after_celery_task_ends(sqlalchemy_session):
+    @task_postrun.connect
+    def close_session(*args, **kwargs):
+        sqlalchemy_session.remove()
