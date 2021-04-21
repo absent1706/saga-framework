@@ -1,8 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from celery import Celery
-
-from saga_framework import BaseSaga, SyncStep, AsyncStep
+from saga_framework.base_saga import BaseSaga, SyncStep
 
 
 def test_saga_run_success():
@@ -28,17 +26,19 @@ def test_saga_run_success():
                 )
             ]
 
-    with patch.object(Saga, 'on_saga_success', on_saga_success_mock):
-        with patch.object(Saga, 'on_saga_failure', on_saga_failure_mock):
-            celery_app = Celery()
-            fake_saga_id = 123
-            Saga(celery_app, fake_saga_id).execute()
+        on_saga_success = on_saga_success_mock
+        on_saga_failure = on_saga_failure_mock
 
-            step_2_action_mock.assert_called_once()
-            on_saga_success_mock.assert_called_once()
+    ###### preparation ended #####
 
-            step_1_compensation_mock.assert_not_called()
-            on_saga_failure_mock.assert_not_called()
+    fake_saga_id = 123
+    Saga(fake_saga_id).execute()
+
+    step_2_action_mock.assert_called_once()
+    on_saga_success_mock.assert_called_once()
+
+    step_1_compensation_mock.assert_not_called()
+    on_saga_failure_mock.assert_not_called()
 
 
 def test_saga_action_fails():
@@ -73,15 +73,16 @@ def test_saga_action_fails():
                 )
             ]
 
-    with patch.object(Saga, 'on_saga_success', on_saga_success_mock):
-        with patch.object(Saga, 'on_saga_failure', on_saga_failure_mock):
-            celery_app = Celery()
-            fake_saga_id = 123
-            Saga(celery_app, fake_saga_id).execute()
+        on_saga_success = on_saga_success_mock
+        on_saga_failure = on_saga_failure_mock
 
-            step_1_compensation_mock.assert_called_once()
-            on_saga_failure_mock.assert_called_once()
+    ###### preparation ended #####
+    fake_saga_id = 123
+    Saga(fake_saga_id).execute()
 
-            step_2_action_mock.assert_not_called()
-            step_2_compensation_mock.assert_not_called()
-            on_saga_success_mock.assert_not_called()
+    step_1_compensation_mock.assert_called_once()
+    on_saga_failure_mock.assert_called_once()
+
+    step_2_action_mock.assert_not_called()
+    step_2_compensation_mock.assert_not_called()
+    on_saga_success_mock.assert_not_called()
