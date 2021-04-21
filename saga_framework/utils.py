@@ -1,8 +1,12 @@
 __all__ = ['success_task_name', 'failure_task_name', 'SagaErrorPayload',
-           'format_exception_as_python_does', 'serialize_saga_error']
+           'format_exception_as_python_does', 'serialize_saga_error',
+           'NO_ACTION']
 
 import traceback
 from dataclasses import dataclass
+
+
+NO_ACTION = lambda *args: None
 
 
 def success_task_name(task_name: str):
@@ -34,3 +38,4 @@ def serialize_saga_error(exc: BaseException) -> SagaErrorPayload:
         module=exctype.__module__,
         traceback=format_exception_as_python_does(exc)
     )
+

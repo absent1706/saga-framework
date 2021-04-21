@@ -4,7 +4,8 @@ import abc
 
 from celery import Celery
 
-from .base import BaseSaga, AsyncStep, BaseStep
+from .base_saga import BaseSaga, BaseStep
+from .async_saga import AsyncSaga, AsyncStep
 
 
 class AbstractSagaStateRepository(abc.ABC):
@@ -25,7 +26,7 @@ class AbstractSagaStateRepository(abc.ABC):
         pass
 
 
-class StatefulSaga(BaseSaga, abc.ABC):
+class StatefulSaga(AsyncSaga, abc.ABC):
     """
     Note this class assumes sqlalchemy-mixins library is used.
     Use it rather as an example
