@@ -59,11 +59,11 @@ class StatefulSaga(AsyncSaga, abc.ABC):
 
     def on_step_success(self, step: AsyncStep, *args, **kwargs):
         self.saga_state_repository.update_status(self.saga_id, status=f'{step.name}.succeeded')
-        super().on_step_success(step, *args, **kwargs)
+        super().on_async_step_success(step, *args, **kwargs)
 
     def on_step_failure(self, failed_step: AsyncStep, payload: dict):
         self.saga_state_repository.update_status(self.saga_id, status=f'{failed_step.name}.failed')
-        super().on_step_failure(failed_step, payload)
+        super().on_async_step_failure(failed_step, payload)
 
     def on_saga_success(self):
         super().on_saga_success()
