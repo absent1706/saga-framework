@@ -139,7 +139,6 @@ def test_saga_run_failure():
                 )
             ]
 
-
     fake_celery_app = FakeCeleryApp()
 
     # register 'response' Celery tasks handlers.
