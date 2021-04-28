@@ -2,7 +2,7 @@ import typing
 
 import asyncapi
 
-from .. import success_task_name, failure_task_name, SagaErrorPayload
+from . import success_task_name, failure_task_name, SagaErrorPayload
 
 fake_asyncapi_servers = {'development': asyncapi.Server(
     url='localhost',
