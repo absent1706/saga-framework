@@ -13,6 +13,9 @@ What's cool there:
 # Implementation notes
 There're three Saga classes covering use cases from trivial (`BaseSaga`) to real-world ones (`StatefulSaga`)
 
+## Terminology 
+**TODO**
+
 ## BaseSaga
 Simplest class which is an analogue of [saga_py](https://github.com/flowpl/saga_py)
 
@@ -120,7 +123,37 @@ def approve_ticket_task(self: Task, saga_id: int, payload: dict) -> typing.Union
     return None
 ```
 
-**TODO: order service-> register celry workers**
+### Registering response handlers for Orchestrator
+As mentioned above, Orchestrator service listens for responses from Saga Step Handler services.
+For example, if Orchestrator sent message (read "Celery task") named `restaurant_service.approve_ticket` to Saga Step Handler (say, Restaurant Service),
+ it will expect to get success response a message (Celery task) named `restaurant_service.approve_ticket.response.success` or `restaurant_service.approve_ticket.response.failure`.
+
+This is true for all `AsyncStep`'s in saga.
+
+So, for each Celery task Orchestrator sends, we need it to listen for responses which are Celery tasks theirselves.
+
+For that, framework has `AsyncSaga.register_async_step_handlers` method that automatically registers all response listeners.
+
+For example (see more at [a real usage example repo](https://github.com/absent1706/saga-demo)):
+
+```python
+from celery import Celery
+from saga_framework import close_sqlalchemy_db_connection_after_celery_task_ends
+
+from order_service.app_common import settings
+from order_service.app_common.messaging import CREATE_ORDER_SAGA_RESPONSE_QUEUE
+from .app import CreateOrderSaga, db
+
+create_order_saga_responses_celery_app = Celery(
+    'create_order_saga_responses',
+    broker=settings.CELERY_BROKER)
+create_order_saga_responses_celery_app.conf.task_default_queue = CREATE_ORDER_SAGA_RESPONSE_QUEUE
+
+close_sqlalchemy_db_connection_after_celery_task_ends(db.session)  # SQLAlchemy-specific: we need to close SQLAlchemy session after each Celery task run 
+
+CreateOrderSaga.register_async_step_handlers(create_order_saga_responses_celery_app)
+```
+
 
 ## StatefulSaga
 **TODO**
@@ -129,7 +162,9 @@ def approve_ticket_task(self: Task, saga_id: int, payload: dict) -> typing.Union
 **TODO**
 
 ## Real-world example
-**TODO: promote my another repo**
+See real-world example at [https://github.com/absent1706/saga-demo](https://github.com/absent1706/saga-demo).
+
+It contains an implementation of CreateOrderSaga from [Chris Richardson book on Microservices](https://microservices.io/book)
 
 # Development
 See more at https://packaging.python.org/tutorials/packaging-projects/
