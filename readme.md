@@ -156,7 +156,121 @@ CreateOrderSaga.register_async_step_handlers(create_order_saga_responses_celery_
 
 
 ## StatefulSaga
-**TODO**
+It's very useful to keep information about ongoing and finished Sagas in database, 
+so one will know:
+ * which Sagas are running right now
+ * what step is each saga on
+ * which Sagas were completed
+ * which Sagas were failed and with what specific error
+
+Let's keep such information in entity called `SagaState`.
+
+For example, `SagaState` table/entity for CreateOrderSaga from [Chris Richardson book on Microservices](https://microservices.io/book) 
+can look like (SQLAlchemy example, see more at [saga-demo repo](https://github.com/absent1706/saga-demo)):  
+
+```python
+class CreateOrderSagaState(BaseModel):
+    id = db.Column(db.Integer, primary_key=True)
+    last_message_id = db.Column(db.String)
+    
+    created_at = db.Column(db.TIMESTAMP(timezone=False),
+                           default=sa.func.now(),
+                           nullable=False)
+
+    updated_at = db.Column(db.TIMESTAMP(timezone=False),
+                           default=sa.func.now(),
+                           onupdate=sa.func.now(),
+                           nullable=False)
+
+
+    status = db.Column(db.String, default='not_started')
+    failed_step = db.Column(db.String)
+    failed_at = db.Column(db.TIMESTAMP)
+    failure_details = db.Column(db.JSON)
+
+    # Fields specific for CreateOrderSaga
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
+    order = db.relationship("Order")
+```
+
+To support updating `SagaState` in database, `saga_framework` offers `StatefulSaga` class 
+which will call an instance of `AbstractSagaStateRepository` subclass to save Saga State 
+ in a manner defined by repository:
+```python
+
+class StatefulSaga(AsyncSaga, abc.ABC):
+    def __init__(self, saga_state_repository: AbstractSagaStateRepository, celery_app: Celery, saga_id: int):
+        self.saga_state_repository = saga_state_repository
+        super().__init__(celery_app, saga_id)
+
+    @property
+    def saga_state(self):
+        if not self._saga_state:
+            self._saga_state = self.saga_state_repository.get_saga_state_by_id(self.saga_id)
+
+        return self._saga_state
+
+    def run_step(self, step: BaseStep):
+        self.saga_state_repository.update_status(self.saga_id, status=f'{step.name}.running')
+        super().run_step(step)
+
+    def compensate_step(self, step: BaseStep, initial_failure_payload: dict):
+        self.saga_state_repository.update_status(self.saga_id, status=f'{step.name}.compensating')
+        super().compensate_step(step, initial_failure_payload)
+        self.saga_state_repository.update_status(self.saga_id, status=f'{step.name}.compensated')
+
+    def on_step_success(self, step: AsyncStep, *args, **kwargs):
+        self.saga_state_repository.update_status(self.saga_id, status=f'{step.name}.succeeded')
+        super().on_async_step_success(step, *args, **kwargs)
+
+    def on_step_failure(self, failed_step: AsyncStep, payload: dict):
+        self.saga_state_repository.update_status(self.saga_id, status=f'{failed_step.name}.failed')
+        super().on_async_step_failure(failed_step, payload)
+
+    def on_saga_success(self):
+        super().on_saga_success()
+        self.saga_state_repository.update_status(self.saga_id, 'succeeded')
+
+    def on_saga_failure(self, *args, **kwargs):
+        super().on_saga_failure(*args, **kwargs)
+        self.saga_state_repository.update_status(self.saga_id, 'failed')
+```
+
+Here's an example of such repository for CreateOrderSaga using SQLAlchemy and [SQLAlchemy-mixins](https://github.com/absent1706/sqlalchemy-mixins)
+(see more at [Saga demo repo](https://github.com/absent1706/saga-demo)):
+```python
+class CreateOrderSagaRepository(AbstractSagaStateRepository):
+    def get_saga_state_by_id(self, saga_id: int) -> CreateOrderSagaState:
+        # ActiveRecord pattern for SQLAlchemy is used,
+        # see https://github.com/absent1706/sqlalchemy-mixins
+        return CreateOrderSagaState.find(saga_id)  
+
+    def update_status(self, saga_id: int, status: str) -> CreateOrderSagaState:
+        # ActiveRecord pattern for SQLAlchemy is used,
+        # see https://github.com/absent1706/sqlalchemy-mixins     
+        return self.get_saga_state_by_id(saga_id).update(status=status)
+
+    def update(self, saga_id: int, **fields_to_update: str) -> object:
+        return self.get_saga_state_by_id(saga_id).update(**fields_to_update)
+
+    def on_step_failure(self, saga_id: int, failed_step: BaseStep, initial_failure_payload: dict) -> object:
+        return self.get_saga_state_by_id(saga_id).update(
+            failed_step=failed_step.name,
+            failed_at=datetime.datetime.utcnow(),
+            failure_details=initial_failure_payload
+        )
+```
+
+Here's an example of `SagaState` table:
+![example of saga state table](media/create-order-saga-state-table-example.png)
+
+
+### Not on Repository pattern in StatefulSaga
+
+`Repository` pattern allows to use any ORM:
+ * see full Flask+SQLAlchemy example above and in [Saga demo repo](https://github.com/absent1706/saga-demo)
+ * example for Django ORM is not implemented yet, but it should be trivial: you just need to inherit from `AbstractSagaStateRepository` and implement all required abstract methods where you should just work with Django ORM models as regular
+
 
 ## AsyncAPI integration
 **TODO**

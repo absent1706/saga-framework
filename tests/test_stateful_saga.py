@@ -42,11 +42,7 @@ def test_saga_run_success():
 
     step_3_action_mock = MagicMock()
 
-    repository = FakeRepository()
-
     class Saga(StatefulSaga):
-        saga_state_repository = repository
-
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
@@ -72,20 +68,22 @@ def test_saga_run_success():
 
     fake_celery_app = FakeCeleryApp()
 
+    ############# Preraration ended. Launching a test #############
+
+    fake_saga_id = 123
+
+    repository = FakeRepository()
+    repository._saga_states = {fake_saga_id: FakeSagaState(id=fake_saga_id)}
+
     # register 'response' Celery tasks handlers.
     # It's crucial part to make Saga Orchestrator
     #  launch next saga step (or rollback saga) when Saga Handler service
     #  returns result (via Celery task)
     # noinspection PyTypeChecker
-    Saga.register_async_step_handlers(fake_celery_app)
-
-    ############# Preraration ended. Launching a test #############
-
-    fake_saga_id = 123
-    repository._saga_states = {fake_saga_id: FakeSagaState(id=fake_saga_id)}
+    Saga.register_async_step_handlers(repository, fake_celery_app)
 
     # launch saga
-    Saga(fake_celery_app, fake_saga_id).execute()
+    Saga(repository, fake_celery_app, fake_saga_id).execute()
 
     # check that status is correct (step 2 is running until we have response from Celery)
     assert repository._saga_states[fake_saga_id].status == 'step_2.running'
@@ -111,11 +109,7 @@ def test_saga_run_failure():
 
     step_3_action_mock = MagicMock()
 
-    repository = FakeRepository()
-
     class Saga(StatefulSaga):
-        saga_state_repository = repository
-
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
@@ -141,19 +135,21 @@ def test_saga_run_failure():
 
     fake_celery_app = FakeCeleryApp()
 
+    ############# Preraration ended. Launching a test #############
+    fake_saga_id = 123
+
+    repository = FakeRepository()
+    repository._saga_states = {fake_saga_id: FakeSagaState(id=fake_saga_id)}
+
     # register 'response' Celery tasks handlers.
     # It's crucial part to make Saga Orchestrator
     #  launch next saga step (or rollback saga) when Saga Handler service
     #  returns result (via Celery task)
     # noinspection PyTypeChecker
-    Saga.register_async_step_handlers(fake_celery_app)
-
-    ############# Preraration ended. Launching a test #############
-    fake_saga_id = 123
-    repository._saga_states = {fake_saga_id: FakeSagaState(id=fake_saga_id)}
+    Saga.register_async_step_handlers(repository, fake_celery_app)
 
     # launch saga
-    Saga(fake_celery_app, fake_saga_id).execute()
+    Saga(repository, fake_celery_app, fake_saga_id).execute()
 
     # check that status is correct (step 2 is running until we have response from Celery)
     assert repository._saga_states[fake_saga_id].status == 'step_2.running'

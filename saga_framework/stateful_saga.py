@@ -2,8 +2,9 @@ __all__ = ['AbstractSagaStateRepository', 'StatefulSaga']
 
 import abc
 
-from celery import Celery
+from celery import Celery, Task
 
+from .utils import success_task_name, failure_task_name
 from .base_saga import BaseSaga, BaseStep
 from .async_saga import AsyncSaga, AsyncStep
 
@@ -34,11 +35,8 @@ class StatefulSaga(AsyncSaga, abc.ABC):
     saga_state_repository: AbstractSagaStateRepository = None
     _saga_state = None  # cached SQLAlchemy instance
 
-    def __init__(self, celery_app: Celery, saga_id: int):
-        if not self.saga_state_repository:
-            raise AttributeError('to run stateful saga, you must set '
-                                 '"saga_state_repository" class property')
-
+    def __init__(self, saga_state_repository: AbstractSagaStateRepository, celery_app: Celery, saga_id: int):
+        self.saga_state_repository = saga_state_repository
         super().__init__(celery_app, saga_id)
 
     @property
@@ -78,3 +76,45 @@ class StatefulSaga(AsyncSaga, abc.ABC):
         self.saga_state_repository.on_step_failure(self.saga_id, failed_step, initial_failure_payload)
         super().compensate(failed_step, initial_failure_payload)
 
+    @classmethod
+    def register_async_step_handlers(cls,
+                                     saga_state_repository: AbstractSagaStateRepository,
+                                     celery_app: Celery):
+        # noinspection PyTypeChecker
+        dummy_saga_instance = cls(None, None, None)
+
+        for step in dummy_saga_instance.async_steps:
+            cls.register_success_handler_for_step(saga_state_repository,
+                                                  celery_app, step)
+            cls.register_failure_handler_for_step(saga_state_repository,
+                                                  celery_app, step)
+
+    @classmethod
+    def register_success_handler_for_step(cls,
+                                          saga_state_repository: AbstractSagaStateRepository,
+                                          celery_app: Celery, step: AsyncStep):
+        def on_success_handler(celery_task: Task, saga_id: int, payload: dict):
+            saga = cls(saga_state_repository=saga_state_repository,
+                       celery_app=celery_app, saga_id=saga_id)
+
+            step_ = saga.get_async_step_by_success_task_name(celery_task.name)
+            saga.on_async_step_success(step_, payload)
+
+        celery_app.task(
+            name=success_task_name(step.base_task_name),
+            bind=True
+        )(on_success_handler)
+
+    @classmethod
+    def register_failure_handler_for_step(cls, saga_state_repository: AbstractSagaStateRepository, celery_app: Celery, step: AsyncStep):
+
+        def on_failure_handler(celery_task: Task, saga_id: int, payload: dict):
+            saga = cls(saga_state_repository, celery_app, saga_id)
+
+            step_ = saga.get_async_step_by_failure_task_name(celery_task.name)
+            saga.on_async_step_failure(step_, payload)
+
+        celery_app.task(
+            name=failure_task_name(step.base_task_name),
+            bind=True
+        )(on_failure_handler)
