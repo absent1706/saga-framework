@@ -1,9 +1,24 @@
 Saga Framework for Microservices
 ====
+- [What is it](#what-is-it)
+- [Implementation notes](#implementation-notes)
+  * [Terminology](#terminology)
+  * [BaseSaga](#basesaga)
+  * [AsyncSaga](#asyncsaga)
+    + [Registering response handlers for Orchestrator](#registering-response-handlers-for-orchestrator)
+  * [StatefulSaga](#statefulsaga)
+    + [Note on Repository pattern in StatefulSaga](#note-on-repository-pattern-in-statefulsaga)
+  * [AsyncAPI integration](#asyncapi-integration)
+  * [Real-world example](#real-world-example)
+- [Development](#development)
+  * [Setup](#setup)
+  * [Build](#build)
+  * [Upload to PyPi](#upload-to-pypi)
+    
+# What is it
+It's first Python framework implementing Saga pattern ("orchestration" flavour) for microservices.
 
-Framework implementing Saga pattern ("orchestration" flavour) for microservices
-
-It's a Python alternative of [Eventuate Tram Sagas library](https://eventuate.io/docs/manual/eventuate-tram/latest/getting-started-eventuate-tram-sagas.html)
+Treat it as a Python alternative of [Eventuate Tram Sagas library](https://eventuate.io/docs/manual/eventuate-tram/latest/getting-started-eventuate-tram-sagas.html)
  that's promoted in [Chris Richardson book on Microservices](https://microservices.io/book)
 
 What's cool there:
