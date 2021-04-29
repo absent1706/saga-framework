@@ -1,3 +1,6 @@
+Saga Framework for Microservices
+====
+
 Framework implementing Saga pattern ("orchestration" flavour) for microservices
 
 It's a Python alternative of [Eventuate Tram Sagas library](https://eventuate.io/docs/manual/eventuate-tram/latest/getting-started-eventuate-tram-sagas.html)
@@ -265,7 +268,7 @@ Here's an example of `SagaState` table:
 ![example of saga state table](media/create-order-saga-state-table-example.png)
 
 
-### Not on Repository pattern in StatefulSaga
+### Note on Repository pattern in StatefulSaga
 
 `Repository` pattern allows to use any ORM:
  * see full Flask+SQLAlchemy example above and in [Saga demo repo](https://github.com/absent1706/saga-demo)
