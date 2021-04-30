@@ -29,6 +29,12 @@ What's cool there:
  * [Practical usage example](https://github.com/absent1706/saga-demo) (`CreateOrder` saga from [Chris Richardson book on Microservices](https://microservices.io/book))
 
 # Implementation notes
+For unpatient readers: here's an illustration of how first two steps of Create Order Saga from [demo repository](https://github.com/absent1706/saga-demo) work.
+![create-order-saga-first-2-steps-explained](readme-media/create-order-saga-first-2-steps-explained.png)
+
+
+Let's now move to more detailed description.
+
 There're three Saga classes covering use cases from trivial (`BaseSaga`) to real-world ones (`StatefulSaga`)
 
 ## Terminology 
@@ -280,7 +286,7 @@ class CreateOrderSagaRepository(AbstractSagaStateRepository):
 ```
 
 Here's an example of `SagaState` table:
-![example of saga state table](media/create-order-saga-state-table-example.png)
+![example of saga state table](readme-media/create-order-saga-state-table-example.png)
 
 
 ### Note on Repository pattern in StatefulSaga
