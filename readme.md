@@ -22,11 +22,12 @@ Treat it as a Python alternative of [Eventuate Tram Sagas library](https://event
  that's promoted in [Chris Richardson book on Microservices](https://microservices.io/book)
 
 What's cool there:
- * Saga classes for Saga Orchestrator
+ * Framework-agnostic
  * Saga state keeping (with `StatefulSaga` class)
  * Celery integration
- * AsyncAPI integration  
+ * [AsyncAPI](https://www.asyncapi.com/) integration  
  * [Practical usage example](https://github.com/absent1706/saga-demo) (`CreateOrder` saga from [Chris Richardson book on Microservices](https://microservices.io/book))
+ * Well-structured: has 3 Saga classes with increasing set of features (`BaseSaga`, `AsyncSaga`, `StatefulSaga`)    
 
 # Implementation notes 
 
