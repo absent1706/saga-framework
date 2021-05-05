@@ -2,11 +2,11 @@ Saga Framework for Microservices
 ====
 - [What is it](#what-is-it)
 - [Implementation notes](#implementation-notes)
-  * [Terminology](#terminology)
-  * [BaseSaga](#basesaga)
-  * [AsyncSaga](#asyncsaga)
+  * [Main solution components](#main-solution-components)
+  * [Basics: syncronous sagas](#basics--syncronous-sagas)
+  * [Closer to reality: asyncronous sagas](#closer-to-reality--asyncronous-sagas)
     + [Registering response handlers for Orchestrator](#registering-response-handlers-for-orchestrator)
-  * [StatefulSaga](#statefulsaga)
+  * [Keeping saga states - must-have in practice](#keeping-saga-states---must-have-in-practice)
     + [Note on Repository pattern in StatefulSaga](#note-on-repository-pattern-in-statefulsaga)
   * [AsyncAPI integration](#asyncapi-integration)
   * [Real-world example](#real-world-example)
@@ -53,7 +53,7 @@ Let's now move to what current framework has to offer.
 There're three Saga classes covering use cases from trivial (`BaseSaga`) to real-world ones (`StatefulSaga`)
 
 
-## BaseSaga
+## Basics: syncronous sagas 
 Simplest class which is an analogue of [saga_py](https://github.com/flowpl/saga_py)
 
 ```python
@@ -88,7 +88,7 @@ Saga(fake_saga_id).execute()
 As simple as that.
 Determine saga steps and run them.
 
-## AsyncSaga
+## Closer to reality: asyncronous sagas
 Here's where story begins.
 
 In real world, Saga steps are handled by other microservices which Orchestrator service launches
@@ -192,7 +192,7 @@ CreateOrderSaga.register_async_step_handlers(create_order_saga_responses_celery_
 ```
 
 
-## StatefulSaga
+## Keeping saga states - must-have in practice
 It's very useful to keep information about ongoing and finished Sagas in database, 
 so one will know:
  * which Sagas are running right now
