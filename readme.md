@@ -28,17 +28,29 @@ What's cool there:
  * AsyncAPI integration  
  * [Practical usage example](https://github.com/absent1706/saga-demo) (`CreateOrder` saga from [Chris Richardson book on Microservices](https://microservices.io/book))
 
-# Implementation notes
-For unpatient readers: here's an illustration of how first two steps of Create Order Saga from [demo repository](https://github.com/absent1706/saga-demo) work.
-![create-order-saga-first-2-steps-explained](readme-media/create-order-saga-first-2-steps-explained.png)
+# Implementation notes 
+
+## Main solution components
+
+**Orchestrator** is main service which consists of 2 components:
+ * entrypoint - CLI or web app that has an interface (console command or API) that can launch a saga execution (which, in most cases, means placing a first Celry) 
+ * worker - catches responses from Saga Step Handler services and launches next saga step or, if there was a failure, rolls back a saga
+ * (in most cases) database where saga states are kept (see [StatefulSaga](#statefulsaga) for more details)
+
+**Saga Step Handler Services** are services which actually perform saga steps (such as validating a customer or charging a credit card).
+They receive Celery tasks from Orchestrator and report results back (via another Celery tasks like `{base task name}.response.success`). 
+
+**Message Broker** is actually transport for communication between Orchestrator and Saga Step Handler Services.
+
+![generic deployment diagram](readme-media/saga-deployment-diagram-generic.png)
+
+To see architecture explanation on example, visit [demo repository](https://github.com/absent1706/saga-demo).
 
 
-Let's now move to more detailed description.
+Let's now move to what current framework has to offer.
 
 There're three Saga classes covering use cases from trivial (`BaseSaga`) to real-world ones (`StatefulSaga`)
 
-## Terminology 
-**TODO**
 
 ## BaseSaga
 Simplest class which is an analogue of [saga_py](https://github.com/flowpl/saga_py)
