@@ -154,7 +154,7 @@ See more at [a real usage example repo](https://github.com/absent1706/saga-demo)
 def approve_ticket_task(self: Task, saga_id: int, payload: dict) -> typing.Union[dict, None]:
     request_data = approve_ticket_message.Payload(**payload)
 
-    # emulate 30%-probable first-time failure
+    # emulate 30%-probable failure
     if random.random() < 0.3:
         raise EnvironmentError('test error message. Task will retry now')
 
