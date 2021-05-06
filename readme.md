@@ -318,15 +318,19 @@ Here's an example of `SagaState` table:
 ## AsyncAPI integration
 > See implementation at [asyncapi_utils.py](saga_framework/asyncapi_utils.py).
 
-The current framework offers integration with [AsyncAPI standard](https://www.asyncapi.com/) and
-[asyncapi-python library](https://github.com/dutradda/asyncapi-python) in particular.
+In REST, we have Swagger / OpenAPI.
+In async messaging, alternative is [AsyncAPI standard](https://www.asyncapi.com/) 
+which provides its own IDL (interface definition language) for describing messages between various services.
 
-Simply saying, it's set of utilities that allow to:
+The current framework offers integration with [AsyncAPI standard](https://www.asyncapi.com/) and
+[asyncapi-python library](https://github.com/dutradda/asyncapi-python) which helps to generate AsyncAPI specifications from Python code.
+
+Simply saying, the current framework offers a set of utilities that allow to use [asyncapi-python library](https://github.com/dutradda/asyncapi-python) even more easy:
  * easily generate `asyncapi.Message` objects (from [asyncapi-python library](https://github.com/dutradda/asyncapi-python)) for Saga Step Handler responses (`asyncapi_message_for_success_response`,`asyncapi_message_for_failure_response` functions)
  * convert AsyncAPI messages to channels and components (AsyncAPI standard has too many various entities, so some of them can be computed from message entity to not make developers write tons of repeatable code)
  * generate some fake information about AsyncAPI servers - a completely optional thing which is however required by [asyncapi-python library](https://github.com/dutradda/asyncapi-python)
 
-See usage example in [demo repository](https://github.com/absent1706/saga-demo).
+See full usage example in [demo repository](https://github.com/absent1706/saga-demo).
 
 ## Real-world example
 See real-world example at [https://github.com/absent1706/saga-demo](https://github.com/absent1706/saga-demo).
