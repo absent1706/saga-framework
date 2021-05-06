@@ -54,7 +54,9 @@ There're three Saga classes covering use cases from trivial (`BaseSaga`) to real
 
 
 ## Basics: synchronous sagas 
-Simplest class which is an analogue of [saga_py](https://github.com/flowpl/saga_py)
+> See implementation at [base_saga.py](saga_framework/base_saga.py).
+
+Framework backbone is the simplest Saga class which is an analogue of [saga_py](https://github.com/flowpl/saga_py)
 
 ```python
 class Saga(BaseSaga):
@@ -89,7 +91,9 @@ As simple as that.
 Determine saga steps and run them.
 
 ## Closer to reality: asynchronous sagas
-Here's where story begins.
+> See implementation at [async_saga.py](saga_framework/async_saga.py).
+
+Here's where the story begins.
 
 In real world, Saga steps are handled by other microservices which Orchestrator service launches
 by means of sending a message to message broker (in case of Python, it will correspond to sending Celery task).
@@ -193,6 +197,8 @@ CreateOrderSaga.register_async_step_handlers(create_order_saga_responses_celery_
 
 
 ## Keeping saga states - must-have in practice
+> See implementation at [stateful_saga.py](saga_framework/stateful_saga.py).
+
 It's very useful to keep information about ongoing and finished Sagas in database, 
 so one will know:
  * which Sagas are running right now
@@ -310,7 +316,17 @@ Here's an example of `SagaState` table:
 
 
 ## AsyncAPI integration
-**TODO**
+> See implementation at [asyncapi_utils.py](saga_framework/asyncapi_utils.py).
+
+The current framework offers integration with [AsyncAPI standard](https://www.asyncapi.com/) and
+[asyncapi-python library](https://github.com/dutradda/asyncapi-python) in particular.
+
+Simply saying, it's set of utilities that allow to:
+ * easily generate `asyncapi.Message` objects (from [asyncapi-python library](https://github.com/dutradda/asyncapi-python)) for Saga Step Handler responses (`asyncapi_message_for_success_response`,`asyncapi_message_for_failure_response` functions)
+ * convert AsyncAPI messages to channels and components (AsyncAPI standard has too many various entities, so some of them can be computed from message entity to not make developers write tons of repeatable code)
+ * generate some fake information about AsyncAPI servers - a completely optional thing which is however required by [asyncapi-python library](https://github.com/dutradda/asyncapi-python)
+
+See usage example in [demo repository](https://github.com/absent1706/saga-demo).
 
 ## Real-world example
 See real-world example at [https://github.com/absent1706/saga-demo](https://github.com/absent1706/saga-demo).
