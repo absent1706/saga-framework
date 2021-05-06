@@ -6,7 +6,7 @@ Saga Framework for Microservices
   * [Basics: synchronous sagas](#basics-synchronous-sagas)
   * [Closer to reality: asynchronous sagas](#closer-to-reality-asynchronous-sagas)
     + [Registering response handlers for Orchestrator](#registering-response-handlers-for-orchestrator)
-  * [Keeping saga states - must-have in practice](#keeping-saga-states---must-have-in-practice)
+  * [Keeping saga states](#keeping-saga-states)
     + [Note on Repository pattern in StatefulSaga](#note-on-repository-pattern-in-statefulsaga)
   * [AsyncAPI integration](#asyncapi-integration)
   * [Real-world example](#real-world-example)
@@ -166,8 +166,11 @@ def approve_ticket_task(self: Task, saga_id: int, payload: dict) -> typing.Union
 
 ### Registering response handlers for Orchestrator
 As mentioned above, Orchestrator service listens for responses from Saga Step Handler services.
-For example, if Orchestrator sent message (read "Celery task") named `restaurant_service.approve_ticket` to Saga Step Handler (say, Restaurant Service),
- it will expect to get success response a message (Celery task) named `restaurant_service.approve_ticket.response.success` or `restaurant_service.approve_ticket.response.failure`.
+
+For example:
+ * Orchestrator sends message (Celery task) named `restaurant_service.approve_ticket` to Saga Step Handler (say, Restaurant Service)
+ * in response, Orchestrator will expect to get success response message (Celery task) named `restaurant_service.approve_ticket.response.success` 
+   or `restaurant_service.approve_ticket.response.failure`.
 
 This is true for all `AsyncStep`'s in saga.
 
@@ -196,7 +199,7 @@ CreateOrderSaga.register_async_step_handlers(create_order_saga_responses_celery_
 ```
 
 
-## Keeping saga states - must-have in practice
+## Keeping saga states
 > See implementation at [stateful_saga.py](saga_framework/stateful_saga.py).
 
 It's very useful to keep information about ongoing and finished Sagas in database, 
